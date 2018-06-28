@@ -39,6 +39,7 @@ namespace MediaStreamSource
 		// MediaProtectionManager
 		void ServiceRequested(Windows::Media::Protection::MediaProtectionManager ^manager, Windows::Media::Protection::ServiceRequestedEventArgs ^args);
 		void ComponentLoadFailed(Windows::Media::Protection::MediaProtectionManager ^manager, Windows::Media::Protection::ComponentLoadFailedEventArgs ^args);
+		void RebootNeeded(Windows::Media::Protection::MediaProtectionManager ^manager);
 
 		// tools
 		void CreateMediaPlayer();
