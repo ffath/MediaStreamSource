@@ -193,12 +193,10 @@ void MainPage::PlayClearSamples(Platform::Object^ sender, Windows::UI::Xaml::Rou
 }
 
 /*
- * This is what we're tring to do, without success.
+ * This is what we're trying to do, without success.
  * These samples have been taken from a PR-encrypted version of the same
  * stream (both URLs on top of this file).
- * We are going to assume it's the same data, but encrypted. Not really 
- * important since we're not even going to SampleRequested (nor Starting, for
- * that matter).
+ * We are going to assume it's the same data, but encrypted.
  */
 void MainPage::PlayEncryptedSamples(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
@@ -408,20 +406,23 @@ void MainPage::SampleRequested(Windows::Media::Core::MediaStreamSource ^source, 
 			// subsample mapping
 			// tried as an array of integers, clear then encrypted then clear then encrypted, etc
 			// the method takes a byte array, though...
-			unsigned int *subSampleMapping = new unsigned int[au->m_uiSubSample_count * 2];
+			DWORD *subSampleMapping = new DWORD[au->m_uiSubSample_count * 2];
 			for (int i = 0; i < au->m_uiSubSample_count; i++)
 			{
 				subSampleMapping[i * 2]     = au->m_puiBytesOfClearData[i];
 				subSampleMapping[i * 2 + 1] = au->m_puiBytesOfEncryptedData[i];
 			}
-			sample->Protection->SetSubSampleMapping(ref new Array<unsigned char>((unsigned char *) subSampleMapping, au->m_uiSubSample_count * 2 * sizeof(unsigned int)));
+			sample->Protection->SetSubSampleMapping(ref new Array<unsigned char>((unsigned char *) subSampleMapping, au->m_uiSubSample_count * 2 * sizeof(DWORD)));
 
-			// IV: I tried big endian as I saw somewhere else
-			// not sure about that.
+			// IV: it appears IVs are 8 bytes long on these samples
+			// unfortunately they are stored in an unsigned long long and I'm not sure
+			// if they go MSB or LSB first.
+			// let's assume MSB.
 			unsigned char iv[8];
 			for (int i = 0; i < sizeof(iv) / sizeof(iv[0]); i++)
 			{
-				iv[i] = (au->m_IV >> ((7 - i) * 8)) & 0xff;
+				iv[i] = (au->m_IV >> ((7 - i) * 8)) & 0xff; // MSB first
+				//iv[i] = (au->m_IV >> ((i) * 8)) & 0xff; // LSB first
 			}
 			sample->Protection->SetInitializationVector(ref new Array<unsigned char>(iv, sizeof(iv)));
 		}
